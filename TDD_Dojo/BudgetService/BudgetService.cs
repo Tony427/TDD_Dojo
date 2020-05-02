@@ -7,8 +7,20 @@ namespace BudgetService
 {
     public class BudgetService
     {
-        public decimal Query(DateTime start, DateTime endTime)
+        private IBudgetRepo _budgetRepo;
+        public BudgetService(IBudgetRepo budgetRepo)
         {
+            _budgetRepo = budgetRepo;
+        }
+
+        public decimal Query(DateTime startTime, DateTime endTime)
+        {
+            if (startTime > endTime) return 0;
+
+            // 1. getData
+            // 2. 攤比例
+
+
             return 0;
         }
     }
@@ -25,14 +37,4 @@ namespace BudgetService
         IEnumerable<Budget> GetAll();
     }
 
-    public class BudgetRepo : IBudgetRepo
-    {
-        public IEnumerable<Budget> GetAll()
-        {
-            return new List<Budget>
-            {
-                new Budget(){YearMonth = "202005", Amount = 31000}
-            };
-        }
-    }
 }

@@ -12,20 +12,23 @@ namespace BudgetService.Test
         public BudgetServiceTests()
         {
             this.mockRepository = new MockRepository(MockBehavior.Strict);
+
         }
 
         private BudgetService CreateService()
         {
-            return new BudgetService();
+            var mockBudgetRepo = new Mock<IBudgetRepo>();
+            return new BudgetService(mockBudgetRepo.Object);
         }
 
         [Fact]
-        public void Query_StateUnderTest_ExpectedBehavior()
+        public void StartTimeOverThanEndTime_ReturnZero()
         {
             // Arrange
+
             var service = this.CreateService();
-            DateTime start = default(global::System.DateTime);
-            DateTime endTime = default(global::System.DateTime);
+            DateTime start = new DateTime(2020, 05, 02);
+            DateTime endTime = new DateTime(2020, 03, 15);
 
             // Act
             var result = service.Query(
@@ -33,7 +36,7 @@ namespace BudgetService.Test
                 endTime);
 
             // Assert
-            Assert.True(false);
+            Assert.Equal(0, result);
             this.mockRepository.VerifyAll();
         }
     }
