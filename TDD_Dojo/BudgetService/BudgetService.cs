@@ -34,12 +34,12 @@ namespace BudgetService
                 var startResult = (decimal)(startAmount * (decimal)startPercentage);
 
                 var endAmount = GetMonthBudgetAmount(endTime);
-                var endPercentage = GetPercentageFromMonthEnd(endTime);
+                var endPercentage = GetPercentageFromMonthStart(endTime);
                 var endResult = (decimal)(endAmount * (decimal)endPercentage);
 
                 return startResult + endResult;
             }
-            else if (monthDiff > 1)
+            else
             {
                 var startAmount = GetMonthBudgetAmount(startTime);
                 var startPercentage = GetPercentageFromMonthEnd(startTime);
@@ -55,16 +55,11 @@ namespace BudgetService
                 }
 
                 var endAmount = GetMonthBudgetAmount(endTime);
-                var endPercentage = GetPercentageFromMonthEnd(endTime);
+                var endPercentage = GetPercentageFromMonthStart(endTime);
                 var endResult = (decimal)(endAmount * (decimal)endPercentage);
 
                 return startResult + sum + endResult;
             }
-            else
-            {
-                throw new ArgumentOutOfRangeException();
-            }
-
 
         }
 
@@ -74,22 +69,22 @@ namespace BudgetService
             return budget?.Amount ?? 0;
         }
 
-        public double GetPercentageFromMonthStart(DateTime dateTime)
+        public decimal GetPercentageFromMonthStart(DateTime dateTime)
         {
             var daysInMonth = DateTime.DaysInMonth(dateTime.Year, dateTime.Month);
-            return dateTime.Day / daysInMonth;
+            return (decimal)dateTime.Day / daysInMonth;
         }
 
-        public double GetPercentageFromMonthEnd(DateTime dateTime)
+        public decimal GetPercentageFromMonthEnd(DateTime dateTime)
         {
             var daysInMonth = DateTime.DaysInMonth(dateTime.Year, dateTime.Month);
-            return (daysInMonth - dateTime.Day + 1) / daysInMonth;
+            return (decimal)(daysInMonth - dateTime.Day + 1) / daysInMonth;
         }
 
-        public double GetPercentageFromTwoDates(DateTime startTime, DateTime endTime)
+        public decimal GetPercentageFromTwoDates(DateTime startTime, DateTime endTime)
         {
             var daysInMonth = DateTime.DaysInMonth(startTime.Year, startTime.Month);
-            return (endTime.Day - startTime.Day + 1) / daysInMonth;
+            return (decimal)(endTime.Day - startTime.Day + 1) / daysInMonth;
         }
 
     }
