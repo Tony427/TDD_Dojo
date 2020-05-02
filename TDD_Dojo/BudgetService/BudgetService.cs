@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace BudgetService
 {
@@ -18,28 +19,79 @@ namespace BudgetService
         {
             if (startTime > endTime) return 0;
 
-            var data = _budgetRepo.GetAll().ToList();
-            var days = (endTime.AddDays(1) - startTime).Days;
+            var monthDiff = endTime.Month - startTime.Month;
 
-            double sum = 0;
-            for (var date = startTime.Date; date <= endTime.Date; date = date.AddDays(1))
+            if (monthDiff == 0)
             {
-                sum += GetBudget(date, data);
+                var amount = GetMonthBudgetAmount(startTime);
+                var percentage = GetPercentageFromTwoDates(startTime, endTime);
+                return (decimal)(amount * (decimal)percentage);
+            }
+            else if (monthDiff == 1)
+            {
+                var startAmount = GetMonthBudgetAmount(startTime);
+                var startPercentage = GetPercentageFromMonthEnd(startTime);
+                var startResult = (decimal)(startAmount * (decimal)startPercentage);
+
+                var endAmount = GetMonthBudgetAmount(endTime);
+                var endPercentage = GetPercentageFromMonthEnd(endTime);
+                var endResult = (decimal)(endAmount * (decimal)endPercentage);
+
+                return startResult + endResult;
+            }
+            else if (monthDiff > 1)
+            {
+                var startAmount = GetMonthBudgetAmount(startTime);
+                var startPercentage = GetPercentageFromMonthEnd(startTime);
+                var startResult = (decimal)(startAmount * (decimal)startPercentage);
+
+                // full month
+                decimal sum = 0;
+                var month = startTime.Date.AddMonths(1);
+                while (month.Month < endTime.Month)
+                {
+                    sum += GetMonthBudgetAmount(month);
+                    month = month.AddMonths(1);
+                }
+
+                var endAmount = GetMonthBudgetAmount(endTime);
+                var endPercentage = GetPercentageFromMonthEnd(endTime);
+                var endResult = (decimal)(endAmount * (decimal)endPercentage);
+
+                return startResult + sum + endResult;
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException();
             }
 
-            return (decimal)sum;
+
         }
 
-        private double GetBudget(DateTime startTime, List<Budget> budgets)
+        public decimal GetMonthBudgetAmount(DateTime dateTime)
         {
-            var start = startTime.ToString("yyyyMM");
-            var budget = budgets.FirstOrDefault(b => b.YearMonth == start);
-            if (budget == null) return 0;
-
-            var days = DateTime.DaysInMonth(startTime.Year, startTime.Month);
-
-            return (double)budget.Amount / days;
+            var budget = _budgetRepo.GetAll().FirstOrDefault(b => b.YearMonth == dateTime.ToString("yyyyMM"));
+            return budget?.Amount ?? 0;
         }
+
+        public double GetPercentageFromMonthStart(DateTime dateTime)
+        {
+            var daysInMonth = DateTime.DaysInMonth(dateTime.Year, dateTime.Month);
+            return dateTime.Day / daysInMonth;
+        }
+
+        public double GetPercentageFromMonthEnd(DateTime dateTime)
+        {
+            var daysInMonth = DateTime.DaysInMonth(dateTime.Year, dateTime.Month);
+            return (daysInMonth - dateTime.Day + 1) / daysInMonth;
+        }
+
+        public double GetPercentageFromTwoDates(DateTime startTime, DateTime endTime)
+        {
+            var daysInMonth = DateTime.DaysInMonth(startTime.Year, startTime.Month);
+            return (endTime.Day - startTime.Day + 1) / daysInMonth;
+        }
+
     }
 
     public class Budget
@@ -48,10 +100,8 @@ namespace BudgetService
         public decimal Amount { get; set; }
     }
 
-
     public interface IBudgetRepo
     {
         IEnumerable<Budget> GetAll();
     }
-
 }
