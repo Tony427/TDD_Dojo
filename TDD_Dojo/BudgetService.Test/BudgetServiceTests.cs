@@ -113,5 +113,58 @@ namespace BudgetService.Test
             _mockRepository.VerifyAll();
         }
 
+        [Fact]
+        public void CrossMultipleMonths()
+        {
+            // Arrange
+            _mockRepository = new MockRepository(MockBehavior.Strict);
+            _mockBudgetRepo = _mockRepository.Create<IBudgetRepo>();
+            _mockBudgetRepo.Setup(x => x.GetAll()).Returns(new List<Budget>
+            {
+                new Budget(){YearMonth = "202003", Amount = 3100},
+                new Budget(){YearMonth = "202004", Amount = 30},
+                new Budget(){YearMonth = "202005", Amount = 310}
+            });
+
+            var service = new BudgetService(_mockBudgetRepo.Object);
+            DateTime start = new DateTime(2020, 03, 31);
+            DateTime endTime = new DateTime(2020, 05, 1);
+
+            // Act
+            var result = service.Query(
+                start,
+                endTime);
+
+            // Assert
+            Assert.Equal(140, result);
+            _mockRepository.VerifyAll();
+        }
+
+        [Fact]
+        public void MissingMonthData()
+        {
+            // Arrange
+            _mockRepository = new MockRepository(MockBehavior.Strict);
+            _mockBudgetRepo = _mockRepository.Create<IBudgetRepo>();
+            _mockBudgetRepo.Setup(x => x.GetAll()).Returns(new List<Budget>
+            {
+                new Budget(){YearMonth = "202003", Amount = 3100},
+                new Budget(){YearMonth = "202005", Amount = 310}
+            });
+
+            var service = new BudgetService(_mockBudgetRepo.Object);
+            DateTime start = new DateTime(2020, 03, 31);
+            DateTime endTime = new DateTime(2020, 05, 1);
+
+            // Act
+            var result = service.Query(
+                start,
+                endTime);
+
+            // Assert
+            Assert.Equal(110, result);
+            _mockRepository.VerifyAll();
+        }
+
     }
 }
