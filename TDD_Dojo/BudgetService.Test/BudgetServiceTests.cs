@@ -13,7 +13,7 @@ namespace BudgetService.Test
 
         public BudgetServiceTests()
         {
-            
+
         }
 
         [Fact]
@@ -21,7 +21,7 @@ namespace BudgetService.Test
         {
             // Arrange
             _mockRepository = new MockRepository(MockBehavior.Strict);
-            _mockBudgetRepo=_mockRepository.Create<IBudgetRepo>();
+            _mockBudgetRepo = _mockRepository.Create<IBudgetRepo>();
 
             var service = new BudgetService(_mockBudgetRepo.Object);
             DateTime start = new DateTime(2020, 05, 02);
@@ -61,7 +61,7 @@ namespace BudgetService.Test
             Assert.Equal(1, result);
             _mockRepository.VerifyAll();
         }
-        
+
         [Fact]
         public void SameMonthMultipleDay()
         {
