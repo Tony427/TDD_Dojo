@@ -1,4 +1,4 @@
-using BudgetService;
+﻿using BudgetService;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -34,7 +34,7 @@ namespace BudgetService.Test
             _mockRepository.VerifyAll();
         }
 
-        [Fact]
+        [Fact(DisplayName = "開始時間大於結束時間回傳0")]
         public void StartTimeOverThanEndTime_ReturnZero()
         {
             GivenBudgets(new List<Budget>());
@@ -42,7 +42,7 @@ namespace BudgetService.Test
             ExpectedAmountShouldBe(0, new DateTime(2020, 05, 02), new DateTime(2020, 03, 15));
         }
 
-        [Fact]
+        [Fact(DisplayName = "查詢同一天")]
         public void SameDay()
         {
             GivenBudgets(new List<Budget>
@@ -53,7 +53,7 @@ namespace BudgetService.Test
             ExpectedAmountShouldBe(1, new DateTime(2020, 04, 01), new DateTime(2020, 04, 01));
         }
 
-        [Fact]
+        [Fact(DisplayName = "查詢同一月份多天")]
         public void SameMonthMultipleDay()
         {
             GivenBudgets(new List<Budget>
@@ -64,7 +64,7 @@ namespace BudgetService.Test
             ExpectedAmountShouldBe(3, new DateTime(2020, 04, 01), new DateTime(2020, 04, 03));
         }
 
-        [Fact]
+        [Fact(DisplayName = "查詢跨月多天")]
         public void DifferentMonthMultipleDay()
         {
             GivenBudgets(new List<Budget>
@@ -76,7 +76,7 @@ namespace BudgetService.Test
             ExpectedAmountShouldBe(22, new DateTime(2020, 04, 29), new DateTime(2020, 05, 02));
         }
 
-        [Fact]
+        [Fact(DisplayName = "查詢跨多月")]
         public void CrossMultipleMonths()
         {
             GivenBudgets(new List<Budget>
@@ -89,7 +89,7 @@ namespace BudgetService.Test
             ExpectedAmountShouldBe(140, new DateTime(2020, 03, 31), new DateTime(2020, 05, 01));
         }
 
-        [Fact]
+        [Fact(DisplayName = "查詢多月其中單月無預算資料")]
         public void MissingMonthData()
         {
             GivenBudgets(new List<Budget>

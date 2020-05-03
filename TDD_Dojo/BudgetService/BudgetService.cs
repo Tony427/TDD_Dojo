@@ -71,7 +71,7 @@ namespace BudgetService
         public string YearMonth { get; set; }
         public decimal Amount { get; set; }
 
-        public DateTime CurrentMonthAsDateTime
+        public DateTime FirstDay
         {
             get
             {
@@ -79,22 +79,22 @@ namespace BudgetService
             }
         }
 
-        public int CurrentDaysInMonth
+        public int DaysInMonth
         {
             get
             {
-                return DateTime.DaysInMonth(CurrentMonthAsDateTime.Year, CurrentMonthAsDateTime.Month);
+                return DateTime.DaysInMonth(FirstDay.Year, FirstDay.Month);
             }
         }
 
         public decimal CountAmountByTotalDays(int days)
-            => Amount * days / CurrentDaysInMonth;
+            => Amount * days / DaysInMonth;
 
         public decimal CountAmountByDaysFromMonthStart(int days)
-            => Amount * days / CurrentDaysInMonth;
+            => Amount * days / DaysInMonth;
 
         public decimal CountAmountByDaysFromMonthEnd(int days)
-            => Amount * (CurrentDaysInMonth - days + 1) / CurrentDaysInMonth;
+            => Amount * (DaysInMonth - days + 1) / DaysInMonth;
     }
 
     public interface IBudgetRepo
