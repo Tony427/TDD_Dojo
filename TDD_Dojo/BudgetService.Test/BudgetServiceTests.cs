@@ -13,17 +13,18 @@ namespace BudgetService.Test
 
         public BudgetServiceTests()
         {
-            
+            _mockRepository = new MockRepository(MockBehavior.Strict);
+            _mockBudgetRepo = _mockRepository.Create<IBudgetRepo>();
         }
+
+        public BudgetService CreateBudgetService(IBudgetRepo budgetRepo)
+            => new BudgetService(budgetRepo);
 
         [Fact]
         public void StartTimeOverThanEndTime_ReturnZero()
         {
             // Arrange
-            _mockRepository = new MockRepository(MockBehavior.Strict);
-            _mockBudgetRepo=_mockRepository.Create<IBudgetRepo>();
-
-            var service = new BudgetService(_mockBudgetRepo.Object);
+            var service = CreateBudgetService(_mockBudgetRepo.Object);
             DateTime start = new DateTime(2020, 05, 02);
             DateTime endTime = new DateTime(2020, 03, 15);
 
@@ -41,14 +42,12 @@ namespace BudgetService.Test
         public void SameDay()
         {
             // Arrange
-            _mockRepository = new MockRepository(MockBehavior.Strict);
-            _mockBudgetRepo = _mockRepository.Create<IBudgetRepo>();
             _mockBudgetRepo.Setup(x => x.GetAll()).Returns(new List<Budget>
             {
                 new Budget(){YearMonth = "202004", Amount = 30}
             });
 
-            var service = new BudgetService(_mockBudgetRepo.Object);
+            var service = CreateBudgetService(_mockBudgetRepo.Object);
             DateTime start = new DateTime(2020, 04, 01);
             DateTime endTime = new DateTime(2020, 04, 01);
 
@@ -66,14 +65,12 @@ namespace BudgetService.Test
         public void SameMonthMultipleDay()
         {
             // Arrange
-            _mockRepository = new MockRepository(MockBehavior.Strict);
-            _mockBudgetRepo = _mockRepository.Create<IBudgetRepo>();
             _mockBudgetRepo.Setup(x => x.GetAll()).Returns(new List<Budget>
             {
                 new Budget(){YearMonth = "202004", Amount = 30}
             });
 
-            var service = new BudgetService(_mockBudgetRepo.Object);
+            var service = CreateBudgetService(_mockBudgetRepo.Object);
             DateTime start = new DateTime(2020, 04, 01);
             DateTime endTime = new DateTime(2020, 04, 03);
 
@@ -91,15 +88,13 @@ namespace BudgetService.Test
         public void DifferentMonthMultipleDay()
         {
             // Arrange
-            _mockRepository = new MockRepository(MockBehavior.Strict);
-            _mockBudgetRepo = _mockRepository.Create<IBudgetRepo>();
             _mockBudgetRepo.Setup(x => x.GetAll()).Returns(new List<Budget>
             {
                 new Budget(){YearMonth = "202004", Amount = 30},
                 new Budget(){YearMonth = "202005", Amount = 310}
             });
 
-            var service = new BudgetService(_mockBudgetRepo.Object);
+            var service = CreateBudgetService(_mockBudgetRepo.Object);
             DateTime start = new DateTime(2020, 04, 15);
             DateTime endTime = new DateTime(2020, 05, 25);
 
@@ -117,8 +112,6 @@ namespace BudgetService.Test
         public void CrossMultipleMonths()
         {
             // Arrange
-            _mockRepository = new MockRepository(MockBehavior.Strict);
-            _mockBudgetRepo = _mockRepository.Create<IBudgetRepo>();
             _mockBudgetRepo.Setup(x => x.GetAll()).Returns(new List<Budget>
             {
                 new Budget(){YearMonth = "202003", Amount = 3100},
@@ -126,7 +119,7 @@ namespace BudgetService.Test
                 new Budget(){YearMonth = "202005", Amount = 310}
             });
 
-            var service = new BudgetService(_mockBudgetRepo.Object);
+            var service = CreateBudgetService(_mockBudgetRepo.Object);
             DateTime start = new DateTime(2020, 03, 31);
             DateTime endTime = new DateTime(2020, 05, 1);
 
@@ -144,15 +137,13 @@ namespace BudgetService.Test
         public void MissingMonthData()
         {
             // Arrange
-            _mockRepository = new MockRepository(MockBehavior.Strict);
-            _mockBudgetRepo = _mockRepository.Create<IBudgetRepo>();
             _mockBudgetRepo.Setup(x => x.GetAll()).Returns(new List<Budget>
             {
                 new Budget(){YearMonth = "202003", Amount = 3100},
                 new Budget(){YearMonth = "202005", Amount = 310}
             });
 
-            var service = new BudgetService(_mockBudgetRepo.Object);
+            var service = CreateBudgetService(_mockBudgetRepo.Object);
             DateTime start = new DateTime(2020, 03, 31);
             DateTime endTime = new DateTime(2020, 05, 1);
 
