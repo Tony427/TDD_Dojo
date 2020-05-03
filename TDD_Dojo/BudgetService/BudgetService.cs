@@ -9,7 +9,7 @@ namespace BudgetService
 {
     public class BudgetService
     {
-        private IBudgetRepo _budgetRepo;
+        private readonly IBudgetRepo _budgetRepo;
         public BudgetService(IBudgetRepo budgetRepo)
         {
             _budgetRepo = budgetRepo;
@@ -21,44 +21,48 @@ namespace BudgetService
 
             var monthDiff = endTime.Month - startTime.Month;
 
-            if (monthDiff == 0)
+            switch (monthDiff)
             {
-                var amount = GetMonthBudgetAmount(startTime);
-                var percentage = GetPercentageFromTwoDates(startTime, endTime);
-                return (decimal)(amount * (decimal)percentage);
-            }
-            else if (monthDiff == 1)
-            {
-                var startAmount = GetMonthBudgetAmount(startTime);
-                var startPercentage = GetPercentageFromMonthEnd(startTime);
-                var startResult = (decimal)(startAmount * (decimal)startPercentage);
+                case 0:
+                    {
+                        var amount = GetMonthBudgetAmount(startTime);
+                        var daysInMonth = DateTime.DaysInMonth(startTime.Year, startTime.Month);
+                        var days = endTime.Day - startTime.Day + 1;
+                        return amount * days / daysInMonth;
+                    }
+                case 1:
+                    {
+                        var startAmount = GetMonthBudgetAmount(startTime);
+                        var startTimeDaysInMonth = DateTime.DaysInMonth(startTime.Year, startTime.Month);
+                        var startResult = startAmount * (startTimeDaysInMonth - startTime.Day + 1) / startTimeDaysInMonth;
 
-                var endAmount = GetMonthBudgetAmount(endTime);
-                var endPercentage = GetPercentageFromMonthStart(endTime);
-                var endResult = (decimal)(endAmount * (decimal)endPercentage);
+                        var endAmount = GetMonthBudgetAmount(endTime);
+                        var endTimeDaysInMonth = DateTime.DaysInMonth(endTime.Year, endTime.Month);
+                        var endResult = endAmount * endTime.Day / endTimeDaysInMonth;
 
-                return startResult + endResult;
-            }
-            else
-            {
-                var startAmount = GetMonthBudgetAmount(startTime);
-                var startPercentage = GetPercentageFromMonthEnd(startTime);
-                var startResult = (decimal)(startAmount * (decimal)startPercentage);
+                        return startResult + endResult;
+                    }
+                default:
+                    {
+                        var startAmount = GetMonthBudgetAmount(startTime);
+                        var startTimeDaysInMonth = DateTime.DaysInMonth(startTime.Year, startTime.Month);
+                        var startResult = startAmount * (startTimeDaysInMonth - startTime.Day + 1) / startTimeDaysInMonth;
 
-                // full month
-                decimal sum = 0;
-                var month = startTime.Date.AddMonths(1);
-                while (month.Month < endTime.Month)
-                {
-                    sum += GetMonthBudgetAmount(month);
-                    month = month.AddMonths(1);
-                }
+                        // full month
+                        decimal sum = 0;
+                        var month = startTime.Date.AddMonths(1);
+                        while (month.Month < endTime.Month)
+                        {
+                            sum += GetMonthBudgetAmount(month);
+                            month = month.AddMonths(1);
+                        }
 
-                var endAmount = GetMonthBudgetAmount(endTime);
-                var endPercentage = GetPercentageFromMonthStart(endTime);
-                var endResult = (decimal)(endAmount * (decimal)endPercentage);
+                        var endAmount = GetMonthBudgetAmount(endTime);
+                        var endTimeDaysInMonth = DateTime.DaysInMonth(endTime.Year, endTime.Month);
+                        var endResult = endAmount * endTime.Day / endTimeDaysInMonth;
 
-                return startResult + sum + endResult;
+                        return startResult + sum + endResult;
+                    }
             }
 
         }
