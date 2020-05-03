@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
+using System.Globalization;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading;
 
 namespace BudgetService
 {
@@ -25,78 +23,78 @@ namespace BudgetService
             {
                 case 0:
                     {
-                        var amount = GetMonthBudgetAmount(startTime);
-                        var daysInMonth = DateTime.DaysInMonth(startTime.Year, startTime.Month);
+                        var budget = GetMonthBudget(startTime);
                         var days = endTime.Day - startTime.Day + 1;
-                        return amount * days / daysInMonth;
+                        return budget.CountAmountByTotalDays(days);
                     }
                 case 1:
                     {
-                        var startAmount = GetMonthBudgetAmount(startTime);
-                        var startTimeDaysInMonth = DateTime.DaysInMonth(startTime.Year, startTime.Month);
-                        var startResult = startAmount * (startTimeDaysInMonth - startTime.Day + 1) / startTimeDaysInMonth;
+                        var startBudget = GetMonthBudget(startTime);
+                        var startAmount = startBudget.CountAmountByDaysFromMonthEnd(startTime.Day);
 
-                        var endAmount = GetMonthBudgetAmount(endTime);
-                        var endTimeDaysInMonth = DateTime.DaysInMonth(endTime.Year, endTime.Month);
-                        var endResult = endAmount * endTime.Day / endTimeDaysInMonth;
+                        var endBudget = GetMonthBudget(endTime);
+                        var endAmount = endBudget.CountAmountByDaysFromMonthStart(endTime.Day);
 
-                        return startResult + endResult;
+                        return startAmount + endAmount;
                     }
                 default:
                     {
-                        var startAmount = GetMonthBudgetAmount(startTime);
-                        var startTimeDaysInMonth = DateTime.DaysInMonth(startTime.Year, startTime.Month);
-                        var startResult = startAmount * (startTimeDaysInMonth - startTime.Day + 1) / startTimeDaysInMonth;
+
+                        var startBudget = GetMonthBudget(startTime);
+                        var startAmount = startBudget.CountAmountByDaysFromMonthEnd(startTime.Day);
 
                         // full month
                         decimal sum = 0;
                         var month = startTime.Date.AddMonths(1);
                         while (month.Month < endTime.Month)
                         {
-                            sum += GetMonthBudgetAmount(month);
+                            var budget = GetMonthBudget(month);
+                            sum += budget?.Amount ?? 0;
                             month = month.AddMonths(1);
                         }
 
-                        var endAmount = GetMonthBudgetAmount(endTime);
-                        var endTimeDaysInMonth = DateTime.DaysInMonth(endTime.Year, endTime.Month);
-                        var endResult = endAmount * endTime.Day / endTimeDaysInMonth;
+                        var endBudget = GetMonthBudget(endTime);
+                        var endAmount = endBudget.CountAmountByDaysFromMonthStart(endTime.Day);
 
-                        return startResult + sum + endResult;
+                        return startAmount + sum + endAmount;
                     }
             }
 
         }
 
-        public decimal GetMonthBudgetAmount(DateTime dateTime)
-        {
-            var budget = _budgetRepo.GetAll().FirstOrDefault(b => b.YearMonth == dateTime.ToString("yyyyMM"));
-            return budget?.Amount ?? 0;
-        }
-
-        public decimal GetPercentageFromMonthStart(DateTime dateTime)
-        {
-            var daysInMonth = DateTime.DaysInMonth(dateTime.Year, dateTime.Month);
-            return (decimal)dateTime.Day / daysInMonth;
-        }
-
-        public decimal GetPercentageFromMonthEnd(DateTime dateTime)
-        {
-            var daysInMonth = DateTime.DaysInMonth(dateTime.Year, dateTime.Month);
-            return (decimal)(daysInMonth - dateTime.Day + 1) / daysInMonth;
-        }
-
-        public decimal GetPercentageFromTwoDates(DateTime startTime, DateTime endTime)
-        {
-            var daysInMonth = DateTime.DaysInMonth(startTime.Year, startTime.Month);
-            return (decimal)(endTime.Day - startTime.Day + 1) / daysInMonth;
-        }
-
+        public Budget GetMonthBudget(DateTime dateTime)
+            => _budgetRepo.GetAll().FirstOrDefault(b => b.YearMonth == dateTime.ToString("yyyyMM"));
     }
 
     public class Budget
     {
         public string YearMonth { get; set; }
         public decimal Amount { get; set; }
+
+        public DateTime CurrentMonthAsDateTime
+        {
+            get
+            {
+                return DateTime.ParseExact(YearMonth, "yyyyMM", CultureInfo.CurrentCulture);
+            }
+        }
+
+        public int CurrentDaysInMonth
+        {
+            get
+            {
+                return DateTime.DaysInMonth(CurrentMonthAsDateTime.Year, CurrentMonthAsDateTime.Month);
+            }
+        }
+
+        public decimal CountAmountByTotalDays(int days)
+            => Amount * days / CurrentDaysInMonth;
+
+        public decimal CountAmountByDaysFromMonthStart(int days)
+            => Amount * days / CurrentDaysInMonth;
+
+        public decimal CountAmountByDaysFromMonthEnd(int days)
+            => Amount * (CurrentDaysInMonth - days + 1) / CurrentDaysInMonth;
     }
 
     public interface IBudgetRepo
